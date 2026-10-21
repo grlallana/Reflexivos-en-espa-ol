@@ -1,0 +1,622 @@
+<title>Rutina Reflexiva</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Lexend:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, a "sunrise" header, game cards as a morning timeline; game screens are a single focused card */
+:root{
+  --sky:#EEF3F9; --card:#FFFFFF; --ink:#1B2238; --muted:#5A6580; --line:#D5DEEA;
+  --sun:#EE5527; --sun2:#F5AE1E; --teal:#0F98AA; --good:#1C8F4E; --bad:#CC3333;
+  --good-bg:#E3F5EA; --bad-bg:#FBE6E6; --chip:#F4F7FB;
+  --display:"Bagel Fat One","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --body:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sky:#0E1424; --card:#171F35; --ink:#EAF0FA; --muted:#9BA7C3; --line:#2A3553;
+  --sun:#FF7A4C; --sun2:#FFC34A; --teal:#3EC3D3; --good:#45C47E; --bad:#FF6F6F;
+  --good-bg:#15301F; --bad-bg:#3A1A1E; --chip:#1F2944; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --sky:#0E1424; --card:#171F35; --ink:#EAF0FA; --muted:#9BA7C3; --line:#2A3553;
+  --sun:#FF7A4C; --sun2:#FFC34A; --teal:#3EC3D3; --good:#45C47E; --bad:#FF6F6F;
+  --good-bg:#15301F; --bad-bg:#3A1A1E; --chip:#1F2944; color-scheme:dark}
+
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.1;text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* header */
+.hero{display:flex;align-items:center;gap:18px}
+.hero svg{flex:none;width:84px;height:84px}
+.hero h1{font-size:clamp(2rem,6vw,2.8rem);color:var(--sun)}
+.hero p{margin:4px 0 0;color:var(--muted)}
+
+/* rank */
+.rank{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr auto;gap:6px 14px;align-items:center}
+.rank .badge{grid-row:span 2;width:52px;height:52px;border-radius:50%;background:var(--sun2);display:grid;place-items:center;font-family:var(--display);font-size:1.3rem;color:#1B2238}
+.rank .name{font-weight:700;font-size:1.05rem}
+.rank .xp{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem;text-align:right}
+.bar{grid-column:2/4;height:10px;background:var(--chip);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--sun2),var(--sun));border-radius:99px;transition:width .5s}
+
+/* game list */
+.games{display:flex;flex-direction:column;gap:10px}
+.game{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;transition:transform .12s,border-color .12s}
+.game.reto{border:2px solid var(--sun)}
+.game.reto .time{color:var(--sun)}
+.stars.rec{font-size:.85rem;font-weight:700;letter-spacing:0;color:var(--sun)}
+.lives{color:var(--sun);letter-spacing:2px}
+.lives .off{color:var(--line)}
+.lvlup{font-family:var(--display);font-size:1.2rem;color:var(--sun)}
+.example{background:var(--chip);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.example .arrow{color:var(--muted);font-size:.9rem}
+.example .ans{font-size:1.15rem;font-weight:600;color:var(--teal)}
+.steps{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.game:hover{transform:translateY(-2px);border-color:var(--sun)}
+.game .time{font-family:var(--display);font-size:1.15rem;color:var(--teal);font-variant-numeric:tabular-nums}
+.game h3{font-size:1.2rem}
+.game p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.game .stars{font-size:1.1rem;letter-spacing:2px;color:var(--sun2);white-space:nowrap}
+.stars .off{color:var(--line)}
+
+/* cheat sheet */
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+summary{cursor:pointer;font-weight:600}
+.cheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.cheat div{background:var(--chip);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.cheat b{color:var(--sun)}
+.note{font-size:.9rem;color:var(--muted);margin:10px 0 0}
+
+/* play screen */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{background:none;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:.9rem}
+.top h2{font-size:1.3rem;flex:1;min-width:0}
+.stats{display:flex;gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:.88rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat b{color:var(--sun)}
+.stat.hot{background:var(--sun);border-color:var(--sun);color:#fff}
+.stat.hot b{color:#fff}
+.track{position:relative;height:12px;background:var(--card);border:1px solid var(--line);border-radius:99px}
+.track i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--teal),var(--sun2));border-radius:99px;transition:width .4s}
+.track span{position:absolute;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--sun2);box-shadow:0 0 0 4px color-mix(in srgb,var(--sun2) 30%,transparent);transition:left .4s}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px;display:flex;flex-direction:column;gap:16px}
+.qlabel{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.prompt{font-size:clamp(1.25rem,4vw,1.6rem);font-weight:600;line-height:1.35}
+.prompt .blank{display:inline-block;min-width:3.2em;border-bottom:3px solid var(--sun);text-align:center;color:var(--sun)}
+.prompt .en{font-style:italic}
+.trans{margin-top:-8px;color:var(--muted);font-style:italic;font-size:1rem}
+.subj{display:inline-block;background:var(--chip);border-radius:8px;padding:2px 10px;font-size:.95rem;color:var(--teal);font-weight:700;margin-right:6px}
+.timer{height:5px;background:var(--chip);border-radius:99px;overflow:hidden}
+.timer i{display:block;height:100%;background:var(--sun2);width:100%}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.opt{background:var(--chip);border:2px solid var(--line);border-radius:12px;padding:14px 12px;font-size:1.1rem;font-weight:600;transition:border-color .1s,transform .1s}
+.opt:hover:not(:disabled){border-color:var(--sun);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.opt kbd{font-family:var(--body);font-size:.7rem;color:var(--muted);margin-right:6px}
+
+.typerow{display:flex;gap:10px;flex-wrap:wrap}
+.typerow input,.typerow textarea{resize:vertical;flex:1;min-width:0;font:inherit;font-size:1.2rem;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--chip);color:var(--ink)}
+.accents{display:flex;gap:6px;flex-wrap:wrap}
+.accents button{background:var(--chip);border:1px solid var(--line);border-radius:8px;width:40px;height:40px;font-size:1.05rem;font-weight:600}
+.primary{background:var(--sun);color:#fff;border:0;border-radius:12px;padding:12px 22px;font-weight:700;font-size:1rem}
+.primary:hover{filter:brightness(1.07)}
+.ghost{background:none;border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:600}
+
+.slots{min-height:58px;display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:2px dashed var(--line);border-radius:12px;align-items:center}
+.slots:empty::before{content:"Toca las palabras para construir la frase";color:var(--muted);font-size:.9rem}
+.bank{display:flex;flex-wrap:wrap;gap:8px}
+.tile{background:var(--chip);border:2px solid var(--line);border-bottom-width:4px;border-radius:10px;padding:8px 12px;font-size:1.05rem;font-weight:600}
+.tile:hover{border-color:var(--teal)}
+.slots .tile{background:var(--card);border-color:var(--teal)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+
+.fb{border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--good-bg);color:var(--good)}
+.fb.no{background:var(--bad-bg);color:var(--bad)}
+.fb.half{background:color-mix(in srgb,var(--sun2) 20%,var(--card));color:var(--ink)}
+.fb strong{font-size:1.05rem}
+.fb p{margin:0;color:var(--ink);font-size:.95rem}
+.fb .pts{font-variant-numeric:tabular-nums;font-weight:700}
+
+/* end */
+.end{align-items:center;text-align:center}
+.end h2{font-size:2rem;color:var(--sun)}
+.bigstars{font-size:2.6rem;letter-spacing:6px;color:var(--sun2)}
+.bigstars .off{color:var(--line)}
+.endnums{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.endnums div{background:var(--chip);border-radius:12px;padding:10px 16px;min-width:110px}
+.endnums b{display:block;font-family:var(--display);font-size:1.6rem;color:var(--teal);font-variant-numeric:tabular-nums}
+.endnums span{font-size:.8rem;color:var(--muted)}
+.para{width:100%;text-align:left;background:var(--chip);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+#paraText{margin:0;font-size:1.05rem;line-height:1.6}
+.review{width:100%;text-align:left;display:flex;flex-direction:column;gap:8px}
+.review div{background:var(--chip);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.review .c{color:var(--good);font-weight:700}
+.newbest{color:var(--sun);font-weight:700}
+
+.pop{position:fixed;pointer-events:none;width:10px;height:14px;top:-20px;z-index:20;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.pop{display:none}}
+@media (max-width:480px){.game{grid-template-columns:52px 1fr}.game .stars{grid-column:2}.hero svg{width:64px;height:64px}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+// ---------- DATA ----------
+const reg = s => [s+'o',s+'as',s+'a',s+'amos',s+'áis',s+'an'];
+// e = English sentence ending: [base form, he/she form]; {p} = possessive (my, your, her…)
+const VERBS = [
+  {inf:'levantarse',en:'to get up',f:reg('levant'),c:'a las siete',e:['get up at seven','gets up at seven']},
+  {inf:'despertarse',en:'to wake up',f:['despierto','despiertas','despierta','despertamos','despertáis','despiertan'],c:'muy temprano',stem:'e → ie',e:['wake up very early','wakes up very early']},
+  {inf:'ducharse',en:'to take a shower',f:reg('duch'),c:'por la mañana',e:['take a shower in the morning','takes a shower in the morning']},
+  {inf:'bañarse',en:'to take a bath',f:reg('bañ'),c:'por la noche',e:['take a bath at night','takes a bath at night']},
+  {inf:'lavarse',en:'to wash (oneself)',f:reg('lav'),c:'la cara',e:['wash {p} face','washes {p} face']},
+  {inf:'cepillarse',en:'to brush (teeth or hair)',f:reg('cepill'),c:'los dientes',e:['brush {p} teeth','brushes {p} teeth']},
+  {inf:'peinarse',en:'to comb one’s hair',f:reg('pein'),c:'antes de salir',e:['comb {p} hair before going out','combs {p} hair before going out']},
+  {inf:'maquillarse',en:'to put on makeup',f:reg('maquill'),c:'en el baño',e:['put on makeup in the bathroom','puts on makeup in the bathroom']},
+  {inf:'afeitarse',en:'to shave',f:reg('afeit'),c:'todos los días',e:['shave every day','shaves every day']},
+  {inf:'vestirse',en:'to get dressed',f:['visto','vistes','viste','vestimos','vestís','visten'],c:'muy rápido',stem:'e → i',e:['get dressed very quickly','gets dressed very quickly']},
+  {inf:'ponerse',en:'to put on (clothes)',f:['pongo','pones','pone','ponemos','ponéis','ponen'],c:'los zapatos',stem:'yo: pongo',e:['put on {p} shoes','puts on {p} shoes']},
+  {inf:'quitarse',en:'to take off (clothes)',f:reg('quit'),c:'la chaqueta',e:['take off {p} jacket','takes off {p} jacket']},
+  {inf:'acostarse',en:'to go to bed',f:['acuesto','acuestas','acuesta','acostamos','acostáis','acuestan'],c:'a las diez',stem:'o → ue',e:['go to bed at ten','goes to bed at ten']},
+  {inf:'dormirse',en:'to fall asleep',f:['duermo','duermes','duerme','dormimos','dormís','duermen'],c:'en el sofá',stem:'o → ue',e:['fall asleep on the sofa','falls asleep on the sofa']},
+  {inf:'prepararse',en:'to get ready',f:reg('prepar'),c:'para el colegio',e:['get ready for school','gets ready for school']},
+];
+const PRON = ['me','te','se','nos','os','se'];
+const PERSON = ['yo','tú','él / ella','nosotros','vosotros','ellos / ellas'];
+const SUBJ = [
+  [{es:'Yo',en:'I',p:'my'}],
+  [{es:'Tú',en:'You',p:'your'}],
+  [{es:'Ella',en:'She',p:'her'},{es:'Él',en:'He',p:'his'},{es:'Marta',en:'Marta',p:'her'},{es:'Mi hermano',en:'My brother',p:'his'}],
+  [{es:'Nosotros',en:'We',p:'our'},{es:'Mi familia y yo',en:'My family and I',p:'our'}],
+  [{es:'Vosotros',en:'You (all)',p:'your'},{es:'Tú y Leo',en:'You and Leo',p:'your'}],
+  [{es:'Ellos',en:'They',p:'their'},{es:'Mis padres',en:'My parents',p:'their'},{es:'Mis amigas',en:'My friends',p:'their'}],
+];
+const enSent=(v,i,s)=>`${s.en} ${(i===2?v.e[1]:v.e[0]).replace('{p}',s.p)}.`;
+
+const GUSTAR = [
+  {s:'A mí ___ gusta el chocolate.',en:'I like chocolate.',o:['me','se','mi'],a:'me',x:'With gustar we use the indirect object pronoun: me, te, le, nos, os, les.'},
+  {s:'Tú ___ peinas por la mañana.',en:'You comb your hair in the morning.',o:['te','se','le'],a:'te',x:'Peinarse is reflexive: tú → te peinas.'},
+  {s:'A ella ___ gusta la música.',en:'She likes music.',o:['le','se','la'],a:'le',x:'Gustar uses le for él / ella, never se.'},
+  {s:'Ella ___ maquilla antes de salir.',en:'She puts on makeup before going out.',o:['se','le','la'],a:'se',x:'Maquillarse is reflexive: ella → se maquilla.'},
+  {s:'Nos ___ viajar.',en:'We like to travel.',o:['gusta','gustamos','gustan'],a:'gusta',x:'The thing liked is “viajar” (an infinitive), so gusta stays singular.'},
+  {s:'Me ___ los perros.',en:'I like dogs.',o:['gustan','gusta','gusto'],a:'gustan',x:'“Los perros” is plural, so the verb is gustan.'},
+  {s:'Nosotros ___ vestimos rápido.',en:'We get dressed quickly.',o:['nos','se','os'],a:'nos',x:'Vestirse is reflexive: nosotros → nos vestimos.'},
+  {s:'A mis padres ___ gusta el café.',en:'My parents like coffee.',o:['les','se','los'],a:'les',x:'Gustar with ellos / ellas uses les.'},
+  {s:'Mis padres ___ despiertan a las seis.',en:'My parents wake up at six.',o:['se','les','los'],a:'se',x:'Despertarse is reflexive: ellos → se despiertan.'},
+  {s:'¿Os ___ el fútbol?',en:'Do you (all) like football?',o:['gusta','gustáis','gustan'],a:'gusta',x:'“El fútbol” is singular, so gusta. The pronoun (os) shows who likes it.'},
+  {s:'Vosotros ___ ducháis por la noche.',en:'You (all) take a shower at night.',o:['os','se','vos'],a:'os',x:'Ducharse is reflexive: vosotros → os ducháis.'},
+  {s:'Te ___ las películas de miedo.',en:'You like horror films.',o:['gustan','gusta','gustas'],a:'gustan',x:'“Las películas” is plural, so gustan.'},
+  {s:'Yo me ___ los dientes.',en:'I brush my teeth.',o:['cepillo','cepilla','cepillas'],a:'cepillo',x:'Yo → cepillo. The -o ending matches yo.'},
+  {s:'A Leo ___ gusta dormir.',en:'Leo likes to sleep.',o:['le','se','lo'],a:'le',x:'Leo = él, and gustar uses le.'},
+  {s:'Leo ___ duerme en clase.',en:'Leo falls asleep in class.',o:['se','le','lo'],a:'se',x:'Dormirse is reflexive: él → se duerme.'},
+  {s:'Me gusta ___ temprano.',en:'I like to get up early.',o:['levantarme','me levanto','levanto'],a:'levantarme',x:'After gusta, use the infinitive. The pronoun goes on the end: levantarme.'},
+];
+
+const GUSTAR_W = {
+  'A mí ___ gusta el chocolate.':{se:'Se is the reflexive pronoun. Gustar is not reflexive: a mí → me gusta.',mi:'Mi is a possessive (my, as in mi casa). The pronoun is me.'},
+  'Tú ___ peinas por la mañana.':{se:'Se is for él / ella / ellos. Tú goes with te.',le:'Le is used with gustar, not with reflexive verbs. Tú → te peinas.'},
+  'A ella ___ gusta la música.':{se:'Se is only for reflexive verbs (ella se peina). Gustar uses le: a ella le gusta.',la:'La means “her” as a direct object (la veo = I see her). With gustar we use le.'},
+  'Ella ___ maquilla antes de salir.':{le:'Le goes with gustar. Maquillarse is reflexive, so ella → se maquilla.',la:'La is a direct object (I see her). She does the action to herself, so we use se.'},
+  'Nos ___ viajar.':{gustamos:'Gustar does not change with the person. It agrees with the thing liked (viajar), so gusta.',gustan:'Gustan is for plural things (los perros). Viajar is an infinitive, so gusta.'},
+  'Me ___ los perros.':{gusta:'Gusta is for one thing. Los perros is plural, so gustan.',gusto:'Gusto would mean “I am pleasing”. The dogs are what is liked, so gustan.'},
+  'Nosotros ___ vestimos rápido.':{se:'Se is for él / ella / ellos. Nosotros → nos vestimos.',os:'Os is for vosotros. Nosotros → nos vestimos.'},
+  'A mis padres ___ gusta el café.':{se:'Se is only for reflexive verbs. With gustar, ellos / ellas → les.',los:'Los is a direct object pronoun (los veo = I see them). Gustar uses les.'},
+  'Mis padres ___ despiertan a las seis.':{les:'Les goes with gustar. Despertarse is reflexive, so ellos → se despiertan.',los:'Los is a direct object (I see them). They wake themselves up, so we use se.'},
+  '¿Os ___ el fútbol?':{'gustáis':'Gustar does not take the vosotros ending. It agrees with el fútbol (singular): gusta.',gustan:'Gustan is for plural things. El fútbol is singular, so gusta.'},
+  'Vosotros ___ ducháis por la noche.':{se:'Se is for él / ella / ellos. Vosotros → os ducháis.',vos:'Vos is not a reflexive pronoun. Vosotros → os ducháis.'},
+  'Te ___ las películas de miedo.':{gusta:'Gusta is for one thing. Las películas is plural, so gustan.',gustas:'Gustas would mean “you are pleasing”. The films are what is liked, so gustan.'},
+  'Yo me ___ los dientes.':{cepilla:'-a is the él / ella ending. Yo → cepillo.',cepillas:'-as is the tú ending. Yo → cepillo.'},
+  'A Leo ___ gusta dormir.':{se:'Se is only for reflexive verbs. Gustar uses le: a Leo le gusta.',lo:'Lo is a direct object (lo veo = I see him). With gustar we use le.'},
+  'Leo ___ duerme en clase.':{le:'Le goes with gustar. Dormirse is reflexive, so Leo → se duerme.',lo:'Lo is a direct object. Leo falls asleep himself, so we use se.'},
+  'Me gusta ___ temprano.':{'me levanto':'After gusta we need an infinitive, not a conjugated verb. The pronoun goes on the end: levantarme.',levanto:'After gusta we need an infinitive, with the pronoun on the end: levantarme.'},
+};
+GUSTAR.forEach(g=>g.w=GUSTAR_W[g.s]||{});
+
+const BUILD = [
+  {en:'I get up at seven.',a:['Me levanto a las siete'],d:['Se','levanta']},
+  {en:'She takes a shower in the morning.',a:['Ella se ducha por la mañana','Por la mañana ella se ducha'],d:['me','duchas']},
+  {en:'We get dressed quickly.',a:['Nos vestimos rápido'],d:['vestamos','se']},
+  {en:'You brush your teeth.',a:['Te cepillas los dientes'],d:['Se','tus']},
+  {en:'They go to bed at ten.',a:['Se acuestan a las diez'],d:['acostan','nos']},
+  {en:'I like chocolate.',a:['Me gusta el chocolate'],d:['gusto','Yo']},
+  {en:'He shaves every day.',a:['Él se afeita todos los días','Todos los días él se afeita'],d:['le','afeito']},
+  {en:'You (plural) wake up early.',a:['Os despertáis temprano'],d:['despiertáis','Nos']},
+  {en:'I put on my shoes.',a:['Me pongo los zapatos'],d:['mis','pono']},
+  {en:'We like to travel.',a:['Nos gusta viajar'],d:['gustamos','Nosotros']},
+  {en:'My sister combs her hair.',a:['Mi hermana se peina'],d:['la','peinas']},
+  {en:'I fall asleep at eleven.',a:['Me duermo a las once'],d:['dormo','se']},
+  {en:'First I wash my face.',a:['Primero me lavo la cara'],d:['mi','lava']},
+  {en:'They take off their jackets.',a:['Se quitan las chaquetas'],d:['sus','quitamos']},
+];
+
+const BUILD_W = {
+  'I get up at seven.':{Se:'Se is for él / ella. “I” → me.',levanta:'Levanta is the él / ella form. I → levanto.'},
+  'She takes a shower in the morning.':{me:'Me is for yo. She → se.',duchas:'Duchas is the tú form. She → ducha.'},
+  'We get dressed quickly.':{vestamos:'Vestamos is not a present form. Vestirse is an -ir verb: nosotros → vestimos.',se:'Se is for él / ellos. We → nos.'},
+  'You brush your teeth.':{Se:'Se is for él / ella. You (tú) → te.',tus:'Spanish uses the article with body parts after a reflexive verb: los dientes, not tus dientes.'},
+  'They go to bed at ten.':{acostan:'Acostarse changes o → ue: se acuestan.',nos:'Nos is for nosotros. They → se.'},
+  'I like chocolate.':{gusto:'Gustar agrees with the thing liked: me gusta el chocolate.',Yo:'With gustar we don’t start with yo. Me already shows who likes it.'},
+  'He shaves every day.':{le:'Le goes with gustar. Afeitarse is reflexive: él se afeita.',afeito:'Afeito is the yo form. He → afeita.'},
+  'You (plural) wake up early.':{'despiertáis':'Vosotros has no stem change: despertáis.',Nos:'Nos is for nosotros. You (plural) → os.'},
+  'I put on my shoes.':{mis:'Spanish uses the article with clothes after a reflexive verb: los zapatos, not mis zapatos.',pono:'Ponerse is irregular in the yo form: me pongo.'},
+  'We like to travel.':{gustamos:'Gustar doesn’t change with the person: nos gusta viajar.',Nosotros:'With gustar we don’t start with nosotros. Nos already shows who likes it.'},
+  'My sister combs her hair.':{la:'La is a direct object. She combs her own hair, so we use se.',peinas:'Peinas is the tú form. My sister → peina.'},
+  'I fall asleep at eleven.':{dormo:'Dormirse changes o → ue: me duermo.',se:'Se is for él / ella. I → me.'},
+  'First I wash my face.':{mi:'Spanish uses the article with body parts: la cara, not mi cara.',lava:'Lava is the él / ella form. I → lavo.'},
+  'They take off their jackets.':{sus:'Spanish uses the article with clothes: las chaquetas, not sus chaquetas.',quitamos:'Quitamos is the nosotros form. They → quitan.'},
+};
+const WHO={me:'yo',te:'tú',se:'él / ella / ellos',nos:'nosotros',os:'vosotros'};
+const regForm=(v,i)=>{const t=v.inf.slice(-4,-2),st=v.inf.slice(0,-4);
+  const E={ar:['o','as','a','amos','áis','an'],er:['o','es','e','emos','éis','en'],ir:['o','es','e','imos','ís','en']}[t];return st+E[i]};
+const cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+const ROUTINE=['despertarse','levantarse','ducharse','lavarse','vestirse','peinarse','cepillarse','ponerse','prepararse'];
+const RC={lavarse:'la cara',cepillarse:'los dientes',ponerse:'los zapatos',prepararse:'para el colegio'};
+function timeES(h,m){const H=['las doce','la una','las dos','las tres','las cuatro','las cinco','las seis','las siete','las ocho','las nueve','las diez','las once'];
+  if(m===45)return 'a '+H[(h+1)%12]+' menos cuarto';return 'a '+H[h%12]+({0:'',15:' y cuarto',30:' y media'}[m])}
+
+const GAMES = [
+  {id:'pron',time:'6:45',name:'¿Qué pronombre?',desc:'Choose me, te, se, nos or os. Faster answers earn bonus points.'},
+  {id:'vocab',time:'7:00',name:'Vocabulario veloz',desc:'Match each reflexive verb with its meaning, in both directions.'},
+  {id:'conj',time:'7:15',name:'Conjuga',desc:'Type the pronoun and the verb. Watch the stem changes and accents.'},
+  {id:'gustar',time:'7:30',name:'¿Reflexivo o gustar?',desc:'Se or le? Gusta or gustan? Pick the right form.'},
+  {id:'build',time:'7:45',name:'Construye la frase',desc:'Translate from English by putting the Spanish words in order.'},
+  {id:'write',time:'8:00',name:'Escribe tu rutina',desc:'Write full sentences about a morning routine, then copy your paragraph into your book.'},
+  {id:'reto',time:'Reto',name:'Reto final',desc:'Three lives, 5 seconds per choice question, harder every level. How high can you get?'},
+];
+const RANKS = [[0,'Dormilón'],[150,'Despierto'],[400,'Madrugador'],[800,'Maestro de la rutina'],[1500,'Leyenda del despertador']];
+const ROUND = 10;
+
+// ---------- STORAGE ----------
+let save = {xp:0,best:{},stars:{},bestLevel:0};
+try{const s=JSON.parse(localStorage.getItem('rutina-v1')); if(s) save=Object.assign(save,s);}catch(e){}
+const persist=()=>{try{localStorage.setItem('rutina-v1',JSON.stringify(save))}catch(e){}};
+
+// ---------- HELPERS ----------
+const $=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>s.toLowerCase().replace(/[.,!?¿¡]/g,'').replace(/\s+/g,' ').trim();
+const noAcc=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+const rankOf=xp=>{let r=0;RANKS.forEach((k,i)=>{if(xp>=k[0])r=i});return r};
+const starsHtml=(n,big)=>[0,1,2].map(i=>i<n?'★':'<span class="off">★</span>').join('');
+
+// ---------- QUESTION GENERATORS ----------
+function uniqueGen(fn){const seen=new Set(),out=[];let tries=0;while(out.length<ROUND&&tries<200){const q=fn();tries++;if(seen.has(q.key))continue;seen.add(q.key);out.push(q)}return out}
+const GEN = {
+  pron:()=>uniqueGen(()=>{const v=pick(VERBS),i=rnd(6),s=pick(SUBJ[i]);
+    return {key:v.inf+i,kind:'choice',label:'Completa con el pronombre',
+      prompt:`${esc(s.es)} <span class="blank">___</span> ${v.f[i]} ${v.c}.`,en:enSent(v,i,s),
+      options:['me','te','se','nos','os'],answer:PRON[i],timed:true,why:val=>`You chose <b>${val}</b>, which goes with ${WHO[val]}. ${esc(s.es)} = ${PERSON[i]}, and <b>${v.f[i]}</b> is the ${PERSON[i]} form, so the pronoun is <b>${PRON[i]}</b>.`,
+      explain:`${s.es} → <b>${PRON[i]} ${v.f[i]}</b> (${v.inf})`,review:`${s.es} ___ ${v.f[i]} ${v.c}.`}}),
+  vocab:()=>uniqueGen(()=>{const v=pick(VERBS),toEs=Math.random()<.5;
+    const others=shuffle(VERBS.filter(x=>x!==v)).slice(0,3);
+    return toEs?{key:'e'+v.inf,kind:'choice',label:'¿Cómo se dice en español?',prompt:`<span class="en">“${esc(v.en)}”</span>`,
+      options:shuffle([v,...others].map(x=>x.inf)),answer:v.inf,timed:true,why:val=>`<b>${val}</b> means “${esc(VERBS.find(x=>x.inf===val).en)}”.`,explain:`${v.en} = <b>${v.inf}</b>`,review:v.en}
+     :{key:'s'+v.inf,kind:'choice',label:'What does it mean?',prompt:v.inf,
+      options:shuffle([v,...others].map(x=>x.en)),answer:v.en,timed:true,why:val=>`“${esc(val)}” is <b>${VERBS.find(x=>x.en===val).inf}</b>.`,explain:`${v.inf} = <b>${esc(v.en)}</b>`,review:v.inf}}),
+  conj:()=>uniqueGen(()=>{const v=pick(VERBS),i=rnd(6),s=pick(SUBJ[i]);
+    return {key:v.inf+i,kind:'type',label:'Escribe el pronombre + el verbo',
+      prompt:`<span class="subj">${PERSON[i]}</span><span class="subj">${v.inf}</span><br>${esc(s.es)} <span class="blank">______</span> ${v.c}.`,en:enSent(v,i,s),
+      answer:`${PRON[i]} ${v.f[i]}`,verb:v.f[i],pr:PRON[i],person:PERSON[i],forms:v.f,reg:regForm(v,i),stem:v.stem,inf:v.inf,review:`${s.es} (${v.inf}) ${v.c}`}}),
+  gustar:()=>shuffle(GUSTAR).slice(0,ROUND).map(g=>({kind:'choice',label:'Elige la forma correcta',
+      prompt:esc(g.s).replace('___','<span class="blank">___</span>'),en:g.en,options:shuffle(g.o),answer:g.a,timed:false,why:val=>esc(g.w[val]||''),
+      explain:esc(g.x),review:g.s})),
+  write:()=>{
+    const S=pick([{es:'Yo',i:0},{es:'Yo',i:0},{es:'Marta',i:2},{es:'Mis padres',i:5}]);
+    const steps=shuffle(ROUTINE.map((r,k)=>k)).slice(0,6).sort((a,b)=>a-b).map(k=>ROUTINE[k]);
+    let mins=6*60+30+15*rnd(2);
+    return steps.map(r=>{const v=VERBS.find(x=>x.inf===r);const h=Math.floor(mins/60),m=mins%60;
+      const t=`${h}:${String(m).padStart(2,'0')}`,tes=timeES(h,m);mins+=15;
+      const need=`${PRON[S.i]} ${v.f[S.i]}`;
+      const model=(S.i===0?cap(need):`${S.es} ${need}`)+(r==='prepararse'&&S.i===5?' para el trabajo':RC[r]?' '+RC[r]:'')+' '+tes+'.';
+      return {kind:'write',label:S.i===0?'Escribe sobre tu rutina (yo)':`Escribe sobre ${S.es}`,
+        prompt:`<span class="subj">${t}</span><span class="subj">${S.i===0?'yo':esc(S.es)}</span><br>${v.inf}`,
+        en:`${v.en} · ${tes}`,answer:model,need,pr:PRON[S.i],person:PERSON[S.i],verb:v.f[S.i],forms:v.f,inf:v.inf,
+        stem:v.stem,reg:regForm(v,S.i),hour:tes,review:`${t} · ${v.inf} (${S.es})`}});
+  },
+  build:()=>shuffle(BUILD).slice(0,ROUND).map(b=>({kind:'build',label:'Traduce al español',prompt:`<span class="en">${esc(b.en)}</span>`,
+      tiles:shuffle([...b.a[0].split(' '),...b.d]),answers:b.a,d:b.d,w:BUILD_W[b.en]||{},answer:b.a[0]+'.',review:b.en})),
+};
+
+// ---------- STATE ----------
+let G=null; // current round
+
+function home(){
+  G=null;
+  const r=rankOf(save.xp),next=RANKS[r+1];
+  const pct=next?((save.xp-RANKS[r][0])/(next[0]-RANKS[r][0]))*100:100;
+  $('#app').innerHTML=`
+  <header class="hero">
+    <svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="56" r="22" fill="var(--sun2)"/>
+      <g stroke="var(--sun)" stroke-width="4" stroke-linecap="round"><path d="M42 18v10M14 56h8M62 56h8M22 36l6 6M62 36l-6 6"/></g>
+      <rect x="4" y="58" width="76" height="26" fill="var(--sky)"/><path d="M6 60h72" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/></svg>
+    <div><div class="eyebrow">Español · MYP5 · Presente</div><h1>¡Buenos días!</h1>
+    <p>Practise reflexive verbs and gustar. Every game earns XP for your rank.</p></div>
+  </header>
+  <section class="rank" aria-label="Tu rango">
+    <div class="badge">${r+1}</div>
+    <div class="name">${RANKS[r][1]}</div>
+    <div class="xp">${save.xp} XP${next?` · ${next[0]-save.xp} to “${next[1]}”`:''}</div>
+    <div class="bar"><i style="width:${Math.min(100,pct)}%"></i></div>
+  </section>
+  <section class="games" aria-label="Juegos">
+    ${GAMES.map(g=>`<button class="game${g.id==='reto'?' reto':''}" data-g="${g.id}">
+      <span class="time">${g.time}</span>
+      <span><h3>${g.name}</h3><p>${g.desc}</p></span>
+      ${g.id==='reto'?`<span class="stars rec">Récord: nivel ${save.bestLevel||0}</span>`:`<span class="stars" title="Best: ${save.best[g.id]||0} pts">${starsHtml(save.stars[g.id]||0)}</span>`}</button>`).join('')}
+  </section>
+  <details><summary>Chuleta: pronouns and stem changes</summary>
+    <div class="cheat">
+      <div><b>yo</b> → me levanto</div><div><b>tú</b> → te levantas</div><div><b>él / ella</b> → se levanta</div>
+      <div><b>nosotros</b> → nos levantamos</div><div><b>vosotros</b> → os levantáis</div><div><b>ellos / ellas</b> → se levantan</div>
+      <div><b>e → ie</b> despertarse: me despierto</div><div><b>e → i</b> vestirse: me visto</div><div><b>o → ue</b> acostarse: me acuesto</div>
+      <div><b>o → ue</b> dormirse: me duermo</div><div><b>yo: -go</b> ponerse: me pongo</div><div><b>gustar</b> me, te, le, nos, os, les + gusta / gustan</div>
+    </div>
+    <p class="note">Stem changes never happen in nosotros and vosotros: nos despertamos, os acostáis.</p>
+  </details>`;
+  document.querySelectorAll('.game').forEach(b=>b.onclick=()=>start(b.dataset.g));
+}
+
+const POOL=l=>l<2?['pron','vocab']:l<3?['pron','vocab','gustar']:l<4?['pron','vocab','gustar','conj']:['pron','gustar','conj','build'];
+function challQ(l){let q,t=0;do{q=GEN[pick(POOL(l))]()[0];t++}while(G&&G.seen&&G.seen.has(q.prompt)&&t<20);if(G&&G.seen)G.seen.add(q.prompt);return q}
+function start(id){
+  const ch=id==='reto';G={seen:new Set()};
+  G={id,game:GAMES.find(g=>g.id===id),qs:ch?[challQ(1)]:GEN[id](),i:0,challenge:ch,lives:3,level:1,seen:G.seen,intro:id==='write',score:0,correct:0,streak:0,bestStreak:0,miss:[],para:[]};
+  render();
+}
+
+function progress(){return G.challenge?((G.correct%5)/5)*100:(G.i/G.qs.length)*100}
+function statsHtml(){
+  const first=G.challenge?`<span class="stat">Nivel <b>${G.level}</b> <span class="lives" aria-label="${G.lives} lives">${[0,1,2].map(k=>k<G.lives?'♥':'<span class="off">♥</span>').join('')}</span></span>`
+    :`<span class="stat">${Math.min(G.i+1,G.qs.length)}/${G.qs.length}</span>`;
+  return first+`<span class="stat"><b>${G.score}</b> pts</span><span class="stat ${G.streak>=3?'hot':''}">Racha <b>${G.streak}</b>${G.streak>=5?' ×2':''}</span>`;
+}
+function shell(inner){
+  const p=progress();
+  $('#app').innerHTML=`
+  <div class="top"><button class="back" id="back">← Menú</button><h2>${G.game.name}</h2>
+    <div class="stats">${statsHtml()}</div></div>
+  <div class="track"><i style="width:${p}%"></i><span style="left:${p}%"></span></div>
+  ${inner}`;
+  $('#back').onclick=()=>{clearTimeout(G&&G.tm);home()};
+}
+
+function render(){
+  if(G.intro)return writeIntro();
+  const q=G.qs[G.i];
+  let body='';
+  if(q.kind==='choice'){
+    body=`<div class="card"><div class="qlabel">${q.label}</div><div class="prompt">${q.prompt}</div>${q.en?`<div class="trans">${esc(q.en)}</div>`:''}
+      ${(q.timed||G.challenge)?'<div class="timer"><i id="tbar"></i></div>':''}
+      <div class="opts">${q.options.map((o,k)=>`<button class="opt" data-o="${esc(o)}"><kbd>${k+1}</kbd>${esc(o)}</button>`).join('')}</div>
+      <div id="fb"></div></div>`;
+  }else if(q.kind==='type'||q.kind==='write'){
+    body=`<div class="card"><div class="qlabel">${q.label}</div><div class="prompt">${q.prompt}</div>${q.en?`<div class="trans">${esc(q.en)}</div>`:''}
+      <div class="typerow">${q.kind==='write'?'<textarea id="inp" rows="2" spellcheck="false" placeholder="Escribe una frase completa…" aria-label="Tu frase"></textarea>':'<input id="inp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="p. ej. me levanto" aria-label="Tu respuesta">'}<button class="primary" id="go">Comprobar</button></div>
+      <div class="accents">${['á','é','í','ó','ú','ñ'].map(a=>`<button data-a="${a}" aria-label="Insert ${a}">${a}</button>`).join('')}</div>
+      <div id="fb"></div></div>`;
+  }else{
+    body=`<div class="card"><div class="qlabel">${q.label}</div><div class="prompt">${q.prompt}</div>${q.en?`<div class="trans">${esc(q.en)}</div>`:''}
+      <div class="slots" id="slots"></div><div class="bank" id="bank"></div>
+      <div class="btnrow"><button class="primary" id="go">Comprobar</button><button class="ghost" id="clr">Borrar</button></div>
+      <div id="fb"></div></div>`;
+  }
+  shell(body);
+  G.t0=performance.now(); G.done=false;
+  if(q.kind==='choice'){
+    document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerChoice(b));
+    if(q.timed||G.challenge){const dur=G.challenge?5:8;const bar=$('#tbar');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition=`width ${dur}s linear`;bar.style.width='0%'}));
+      clearTimeout(G.tm);if(G.challenge)G.tm=setTimeout(()=>timeUp(q),dur*1000)}
+  }else if(q.kind==='type'||q.kind==='write'){
+    const inp=$('#inp');inp.focus();
+    document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;
+      inp.value=inp.value.slice(0,s)+b.dataset.a+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1)});
+    $('#go').onclick=q.kind==='write'?answerWrite:answerType;
+  }else{
+    G.placed=[];drawTiles();
+    $('#go').onclick=answerBuild;$('#clr').onclick=()=>{G.placed=[];drawTiles()};
+  }
+}
+
+function drawTiles(){
+  const q=G.qs[G.i];
+  $('#slots').innerHTML=G.placed.map((t,k)=>`<button class="tile" data-k="${k}">${esc(q.tiles[t])}</button>`).join('');
+  $('#bank').innerHTML=q.tiles.map((w,k)=>G.placed.includes(k)?'':`<button class="tile" data-t="${k}">${esc(w)}</button>`).join('');
+  document.querySelectorAll('#bank .tile').forEach(b=>b.onclick=()=>{if(G.done)return;G.placed.push(+b.dataset.t);drawTiles()});
+  document.querySelectorAll('#slots .tile').forEach(b=>b.onclick=()=>{if(G.done)return;G.placed.splice(+b.dataset.k,1);drawTiles()});
+}
+
+function award(base){
+  G.streak++;G.bestStreak=Math.max(G.bestStreak,G.streak);G.correct++;
+  const mult=G.streak>=5?2:1;const pts=(base+(G.challenge?(G.level-1)*2:0))*mult;G.score+=pts;
+  if(G.challenge&&G.correct%5===0){G.level++;G.lvlMsg=`¡Nivel ${G.level}! Questions are worth more points now.`}
+  return pts;
+}
+function fail(q,given){G.streak=0;if(G.challenge)G.lives--;G.miss.push({q:q.review,a:q.answer,g:given})}
+
+function feedback(cls,title,text,pts){
+  if(G.lvlMsg){text=(text?text+'<br>':'')+`<span class="lvlup">${G.lvlMsg}</span>`;G.lvlMsg=''}
+  if(G.challenge&&G.lives===0)text=(text?text+'<br>':'')+'<b>No lives left. Game over!</b>';
+  $('#fb').innerHTML=`<div class="fb ${cls}"><strong>${title}${pts?` <span class="pts">+${pts}</span>`:''}</strong>${text?`<p>${text}</p>`:''}
+    <div class="btnrow"><button class="primary" id="next">${(G.challenge?G.lives>0:G.i+1<G.qs.length)?'Siguiente →':'Ver resultados'}</button></div></div>`;
+  $('.stats').innerHTML=statsHtml();
+  if(G.challenge){const p=progress();$('.track i').style.width=p+'%';$('.track span').style.left=p+'%'}
+  G.done=true;const n=$('#next');n.onclick=next;n.focus();
+}
+
+function answerChoice(btn){
+  if(G.done)return;clearTimeout(G.tm);const q=G.qs[G.i];const val=btn.dataset.o;
+  const bar=$('#tbar');if(bar){const w=getComputedStyle(bar).width;bar.style.transition='none';bar.style.width=w}
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.dataset.o===q.answer)b.classList.add('right')});
+  if(val===q.answer){
+    const secs=(performance.now()-G.t0)/1000;const bonus=q.timed?Math.max(0,Math.round(5-secs/1.5)):0;
+    const pts=award(10+bonus);feedback('ok',pick(['¡Correcto!','¡Muy bien!','¡Perfecto!','¡Genial!']),q.explain+(bonus?` · speed bonus +${bonus}`:''),pts);
+  }else{btn.classList.add('wrong');fail(q,val);const w=q.why?q.why(val):'';feedback('no','Casi…',(w?w+'<br>':'')+q.explain)}
+}
+
+function timeUp(q){
+  if(!G||G.done||G.qs[G.i]!==q)return;
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.dataset.o===q.answer)b.classList.add('right')});
+  fail(q,'(no answer)');feedback('no','¡Se acabó el tiempo!',q.explain);
+}
+
+function writeIntro(){
+  shell(`<div class="card"><div class="qlabel">Cómo funciona</div>
+    <div class="prompt">You get a time and a verb. Write a full sentence about that person’s morning.</div>
+    <div class="example"><div><span class="subj">7:15</span><span class="subj">yo</span> cepillarse</div>
+      <div class="trans">to brush (teeth or hair) · a las siete y cuarto</div>
+      <div class="arrow">You could write:</div><div class="ans">Me cepillo los dientes a las siete y cuarto.</div></div>
+    <div class="example"><div><span class="subj">7:30</span><span class="subj">Marta</span> vestirse</div>
+      <div class="trans">to get dressed · a las siete y media</div>
+      <div class="arrow">You could write:</div><div class="ans">Marta se viste a las siete y media.</div></div>
+    <ol class="steps"><li>Put the reflexive pronoun before the verb: <b>me</b> cepillo, <b>se</b> viste.</li>
+      <li>Conjugate the verb for the person, and watch the stem changes (vestirse → viste).</li>
+      <li>Add the time and a detail if you can (los dientes, rápido, en el baño).</li></ol>
+    <div class="btnrow"><button class="primary" id="begin">¡Empezar!</button></div></div>`);
+  const b=$('#begin');b.onclick=()=>{G.intro=false;render()};b.focus();
+}
+
+function answerType(){
+  if(G.done)return;const q=G.qs[G.i];const raw=$('#inp').value;const v=norm(raw);if(!v){$('#inp').focus();return}
+  const ans=norm(q.answer);const stemNote=q.stem?` Remember: ${q.inf} has a stem change (${q.stem}).`:'';
+  // accept answers that include the subject, e.g. "yo me levanto"
+  const tail=v.split(' ').slice(-2).join(' ');
+  const got=(v===ans||tail===ans)?'full':(noAcc(v)===noAcc(ans)||noAcc(tail)===noAcc(ans))?'acc':'no';
+  $('#inp').disabled=true;
+  if(got==='full'){const pts=award(10);feedback('ok','¡Correcto!',`<b>${q.answer}</b>`,pts)}
+  else if(got==='acc'){const pts=award(5);feedback('half','Casi perfecto: check the accent',`The correct spelling is <b>${q.answer}</b>.`,pts)}
+  else{
+    fail(q,raw);feedback('no','No es correcto',`The answer is <b>${q.answer}</b>.<br>${diagnoseConj(q,v)||stemNote}`)}
+}
+
+function answerBuild(){
+  if(G.done)return;const q=G.qs[G.i];if(!G.placed.length)return;
+  const s=norm(G.placed.map(k=>q.tiles[k]).join(' '));
+  if(q.answers.some(a=>norm(a)===s)){const pts=award(15);feedback('ok','¡Frase perfecta!',`<b>${esc(q.answer)}</b>`,pts)}
+  else{const used=G.placed.map(k=>q.tiles[k]);fail(q,used.join(' '));
+    const ws=[...new Set(used.filter(x=>q.d.includes(x)))].map(x=>esc(q.w[x]||'')).filter(Boolean);
+    const why=ws.length?ws.join('<br>'):used.length<q.answers[0].split(' ').length?'Some words are missing. Every word in the sentence needs a tile.':'You have the right words, but the order is not right. The pronoun goes just before the verb.';
+    feedback('no','No es correcto',`A correct version: <b>${esc(q.answer)}</b><br>${why}`)}
+}
+
+function diagnoseConj(q,v){
+  const parts=v.split(' ').filter(Boolean);const out=[];
+  if(parts.length===1){
+    if(noAcc(parts[0])===noAcc(q.verb))return `Don’t forget the reflexive pronoun: <b>${q.pr} ${q.verb}</b>.`;
+    parts.unshift('');
+  }
+  const [p,vb]=parts.slice(-2);
+  if(p&&p!==q.pr&&WHO[p])out.push(`<b>${p}</b> is the pronoun for ${WHO[p]}. The subject here is ${q.person}, so use <b>${q.pr}</b>.`);
+  else if(!WHO[p])out.push(`Start with the reflexive pronoun: <b>${q.pr}</b>.`);
+  if(noAcc(vb)!==noAcc(q.verb)){
+    if(q.stem&&noAcc(vb)===noAcc(q.reg))out.push(`${q.inf} has a stem change (${q.stem}): <b>${q.verb}</b>, not ${esc(vb)}.`);
+    else if(noAcc(vb)===noAcc(q.inf)||noAcc(vb)===noAcc(q.inf.slice(0,-2)))out.push(`Conjugate the verb instead of using the infinitive: ${q.person} → <b>${q.verb}</b>.`);
+    else{const k=q.forms.findIndex(f=>noAcc(f)===noAcc(vb));
+      out.push(k>=0?`<b>${esc(vb)}</b> is the ${PERSON[k]} form. For ${q.person} use <b>${q.verb}</b>.`
+        :`The ${q.person} form of ${q.inf} is <b>${q.verb}</b>.`+(q.stem?` Remember the stem change (${q.stem}).`:''));}
+  }
+  return out.join(' ');
+}
+
+function diagnoseWrite(q,v){
+  const ws=v.split(' ').map(noAcc);
+  const cands=[...q.forms.map(noAcc),noAcc(q.reg),noAcc(q.inf),noAcc(q.inf.slice(0,-2))];
+  const j=ws.findIndex(w=>cands.includes(w));
+  if(j<0)return `Use the verb <b>${q.inf}</b> in your sentence: ${q.person} → <b>${q.need}</b>.`;
+  const prev=j>0?ws[j-1]:'';
+  return diagnoseConj(q,(WHO[prev]?prev+' ':'')+ws[j])||`Use <b>${q.need}</b>.`;
+}
+
+function fixAccent(raw,q){
+  const rw=raw.split(/\s+/);
+  for(let j=0;j<rw.length-1;j++){
+    if(noAcc(norm(rw[j]))===q.pr&&noAcc(norm(rw[j+1]))===noAcc(q.verb))rw[j+1]=q.verb+rw[j+1].replace(/^[^.,!?;:]*/,'');
+  }
+  return rw.join(' ');
+}
+
+function answerWrite(){
+  if(G.done)return;const q=G.qs[G.i];const raw=$('#inp').value.trim();if(!raw){$('#inp').focus();return}
+  const v=norm(raw),words=v.split(' ');
+  const exact=(' '+v+' ').includes(' '+norm(q.need)+' ');
+  const near=(' '+noAcc(v)+' ').includes(' '+noAcc(norm(q.need))+' ');
+  $('#inp').disabled=true;
+  const fin=x=>{x=cap(x.replace(/\s+/g,' '));return /[.!?]$/.test(x)?x:x+'.'};
+  const hourWord=noAcc(q.hour.split(' ').slice(2).join(' '));
+  const tip=noAcc(v).includes(hourWord)?'':` Tip: add the time (${q.hour}).`;
+  if(exact||near){
+    G.para.push(fin(fixAccent(raw,q)));
+    if(words.length<3){const pts=award(8);feedback('half','Correct verb!',`Next time write a full sentence, e.g. <b>${esc(q.answer)}</b>`,pts)}
+    else if(exact){const pts=award(15);feedback('ok',pick(['¡Muy bien escrito!','¡Excelente!','¡Perfecto!']),`You used <b>${q.need}</b> correctly.${tip}`,pts)}
+    else{const pts=award(8);feedback('half','Almost: check the accent',`The correct spelling is <b>${q.need}</b>. It is fixed in your paragraph.${tip}`,pts)}
+  }else{
+    fail(q,raw);G.para.push(q.answer);
+    feedback('no','Not quite',`${diagnoseWrite(q,v)}<br>Example: <b>${esc(q.answer)}</b><br><span style="font-size:.85rem">The example sentence goes into your paragraph instead.</span>`);
+  }
+}
+
+function next(){if(G.challenge){if(G.lives<=0)return finish();G.qs.push(challQ(G.level))}G.i++;if(G.i<G.qs.length)render();else finish()}
+
+function finish(){
+  if(G.challenge)return finishChallenge();
+  const ratio=G.correct/G.qs.length;const st=ratio>=1?3:ratio>=.8?2:ratio>=.5?1:0;
+  const prev=save.best[G.id]||0;const isBest=G.score>prev;
+  const rankBefore=rankOf(save.xp);
+  save.xp+=G.score;if(isBest)save.best[G.id]=G.score;save.stars[G.id]=Math.max(save.stars[G.id]||0,st);persist();
+  const rankAfter=rankOf(save.xp);
+  const msg=st===3?'¡Perfecto!':st===2?'¡Muy bien!':st===1?'¡Bien hecho!':'¡Sigue practicando!';
+  shell(`<div class="card end"><h2>${msg}</h2><div class="bigstars" aria-label="${st} of 3 stars">${starsHtml(st)}</div>
+    <div class="endnums"><div><b>${G.correct}/${G.qs.length}</b><span>correct</span></div><div><b>${G.score}</b><span>points</span></div><div><b>${G.bestStreak}</b><span>best streak</span></div></div>
+    ${isBest?'<p class="newbest">New personal best!</p>':''}
+    ${rankAfter>rankBefore?`<p class="newbest">New rank: ${RANKS[rankAfter][1]}</p>`:''}
+    ${G.id==='write'?`<div class="para"><div class="qlabel">Tu párrafo</div><p id="paraText">${esc(G.para.join(' '))}</p><div class="btnrow"><button class="ghost" id="copy">Copiar el párrafo</button></div><p class="note">Copy it into your Spanish book and add connectors like primero, luego, después and más tarde.</p></div>`:''}
+    ${G.miss.length?`<div class="review"><div class="qlabel">Review your mistakes</div>${G.miss.map(m=>`<div>${esc(m.q)}<br>Your answer: ${esc(m.g)} · <span class="c">${m.a.replace(/<[^>]+>/g,'')}</span></div>`).join('')}</div>`:''}
+    <div class="btnrow"><button class="primary" id="again">Jugar otra vez</button><button class="ghost" id="menu">Menú</button></div></div>`);
+  document.querySelector('.track i').style.width='100%';document.querySelector('.track span').style.left='100%';
+  document.querySelector('.stats').innerHTML='';
+  $('#again').onclick=()=>start(G.id);$('#menu').onclick=home;
+  const cp=$('#copy');if(cp)cp.onclick=()=>{const sel=()=>{const r=document.createRange();r.selectNodeContents($('#paraText'));const g=getSelection();g.removeAllRanges();g.addRange(r);cp.textContent='Selected: press Ctrl+C'};
+    try{navigator.clipboard.writeText($('#paraText').textContent).then(()=>cp.textContent='¡Copiado!',sel)}catch(e){sel()}};
+  if(st===3&&!matchMedia('(prefers-reduced-motion: reduce)').matches)confetti();
+}
+
+function finishChallenge(){
+  clearTimeout(G.tm);
+  const rec=G.level>(save.bestLevel||0);const rb=rankOf(save.xp);
+  save.xp+=G.score;if(rec)save.bestLevel=G.level;if(G.score>(save.best.reto||0))save.best.reto=G.score;persist();
+  const ra=rankOf(save.xp);
+  shell(`<div class="card end"><div class="qlabel">Reto final</div><h2>Nivel ${G.level}</h2>
+    <div class="endnums"><div><b>${G.level}</b><span>level reached</span></div><div><b>${G.score}</b><span>points</span></div><div><b>${G.correct}</b><span>correct</span></div><div><b>${G.bestStreak}</b><span>best streak</span></div></div>
+    ${rec?'<p class="newbest">New record level!</p>':`<p class="note">Your record: level ${save.bestLevel}</p>`}
+    ${ra>rb?`<p class="newbest">New rank: ${RANKS[ra][1]}</p>`:''}
+    ${G.miss.length?`<div class="review"><div class="qlabel">Review your mistakes</div>${G.miss.map(m=>`<div>${esc(m.q)}<br>Your answer: ${esc(m.g)} · <span class="c">${String(m.a).replace(/<[^>]+>/g,'')}</span></div>`).join('')}</div>`:''}
+    <div class="btnrow"><button class="primary" id="again">Jugar otra vez</button><button class="ghost" id="menu">Menú</button></div></div>`);
+  document.querySelector('.stats').innerHTML='';
+  $('#again').onclick=()=>start('reto');$('#menu').onclick=home;
+  if(rec&&G.level>=3&&!matchMedia('(prefers-reduced-motion: reduce)').matches)confetti();
+}
+
+function confetti(){const cols=['var(--sun)','var(--sun2)','var(--teal)'];
+  for(let i=0;i<40;i++){const d=document.createElement('div');d.className='pop';d.style.left=Math.random()*100+'vw';
+    d.style.background=cols[i%3];d.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}}
+
+// keyboard: number keys pick options, Enter = check / next
+document.addEventListener('keydown',e=>{
+  if(!G||G.i>=G.qs.length)return;
+  if(e.key==='Enter'){if(G.done&&$('#next')){e.preventDefault();$('#next').click()}else if($('#go')&&!G.done){e.preventDefault();$('#go').click()}return}
+  if(!G.done&&/^[1-5]$/.test(e.key)&&document.activeElement?.id!=='inp'){const b=document.querySelectorAll('.opt')[+e.key-1];if(b)b.click()}
+});
+
+home();
+</script>
